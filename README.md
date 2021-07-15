@@ -1,3 +1,15 @@
+# Rust RPC client for Dogecoin Core JSON-RPC
+
+**Work In Progress**
+
+This repository was forked from [rust-bitcoincore-rpc](https://github.com/rust-bitcoin/rust-bitcoincore-rpc) in
+an effort to get [doge-bdk](https://github.com/tcharding/doge-bdk) working with `dogecoind`.
+
+Only tested on testnet, use at your own risk.
+
+# ----- Original rust-miniscript README ------
+
+
 [![Status](https://travis-ci.org/rust-bitcoin/rust-bitcoincore-rpc.png?branch=master)](https://travis-ci.org/rust-bitcoin/rust-bitcoincore-rpc)
 
 # Rust RPC client for Bitcoin Core JSON-RPC 
