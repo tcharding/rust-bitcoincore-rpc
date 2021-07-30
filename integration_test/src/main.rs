@@ -27,8 +27,8 @@ use bitcoin::hashes::hex::{FromHex, ToHex};
 use bitcoin::hashes::Hash;
 use bitcoin::secp256k1;
 use bitcoin::{
-    Address, Amount, Network, OutPoint, PrivateKey, Script, SigHashType, SignedAmount, Transaction,
-    TxIn, TxOut, Txid,
+    Address, Amount, Blockchain, Network, OutPoint, PrivateKey, Script, SigHashType, SignedAmount,
+    Transaction, TxIn, TxOut, Txid,
 };
 use bitcoincore_rpc::bitcoincore_rpc_json::{
     GetBlockTemplateModes, GetBlockTemplateRules, ScanTxOutRequest,
@@ -233,7 +233,7 @@ fn test_get_new_address(cl: &Client) {
 fn test_dump_private_key(cl: &Client) {
     let addr = cl.get_new_address(None, Some(json::AddressType::Bech32)).unwrap();
     let sk = cl.dump_private_key(&addr).unwrap();
-    assert_eq!(addr, Address::p2wpkh(&sk.public_key(&SECP), *NET).unwrap());
+    assert_eq!(addr, Address::p2wpkh(&sk.public_key(&SECP), *NET, Blockchain::Bitcoin).unwrap());
 }
 
 fn test_generate(cl: &Client) {
@@ -509,7 +509,8 @@ fn test_sign_raw_transaction_with_send_raw_transaction(cl: &Client) {
         key: secp256k1::SecretKey::new(&mut secp256k1::rand::thread_rng()),
         compressed: true,
     };
-    let addr = Address::p2wpkh(&sk.public_key(&SECP), Network::Regtest).unwrap();
+    let addr =
+        Address::p2wpkh(&sk.public_key(&SECP), Network::Regtest, Blockchain::Bitcoin).unwrap();
 
     let options = json::ListUnspentQueryOptions {
         minimum_amount: Some(btc(2)),
@@ -840,7 +841,7 @@ fn test_import_address(cl: &Client) {
         key: secp256k1::SecretKey::new(&mut secp256k1::rand::thread_rng()),
         compressed: true,
     };
-    let addr = Address::p2pkh(&sk.public_key(&SECP), Network::Regtest);
+    let addr = Address::p2pkh(&sk.public_key(&SECP), Network::Regtest, Blockchain::Bitcoin);
     cl.import_address(&addr, None, None).unwrap();
     cl.import_address(&addr, Some("l"), None).unwrap();
     cl.import_address(&addr, None, Some(false)).unwrap();
@@ -852,7 +853,7 @@ fn test_import_address_script(cl: &Client) {
         key: secp256k1::SecretKey::new(&mut secp256k1::rand::thread_rng()),
         compressed: true,
     };
-    let addr = Address::p2pkh(&sk.public_key(&SECP), Network::Regtest);
+    let addr = Address::p2pkh(&sk.public_key(&SECP), Network::Regtest, Blockchain::Bitcoin);
     cl.import_address_script(&addr.script_pubkey(), None, None, None).unwrap();
     cl.import_address_script(&addr.script_pubkey(), Some("l"), None, None).unwrap();
     cl.import_address_script(&addr.script_pubkey(), None, Some(false), None).unwrap();
