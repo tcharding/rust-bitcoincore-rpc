@@ -59,6 +59,8 @@ jobs:
         uses: actions/checkout@v4
       - name: "Select toolchain"
         uses: dtolnay/rust-toolchain@nightly
+      - name: "Install rustfmt"
+        run: rustup component add rustfmt
       - name: "Check formatting"
         run: cargo +nightly fmt --all -- --check
 
