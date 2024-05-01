@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: CC0-1.0
+
 //! # rust-bitcoincore-rpc integration test
 //!
 //! The test methods are named to mention the methods tested.
@@ -31,7 +33,7 @@ use bitcoin::{
 
 use jsonrpc::error::Error as JsonRpcError;
 
-use bitcoincore_rpc::bitcoincore_rpc_json::{
+use json::{
     GetBlockTemplateModes, GetBlockTemplateRules, GetZmqNotificationsResult, ScanTxOutRequest,
 };
 

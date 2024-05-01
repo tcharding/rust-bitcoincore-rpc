@@ -15,10 +15,7 @@ keywords = [ "crypto", "bitcoin", "bitcoin-core", "rpc" ]
 readme = "README.md"
 edition = "2021"
 rust-version = "1.56.1"
-
-[lib]
-name = "bitcoincore_rpc_json"
-path = "src/lib.rs"
+exclude = ["integration_test"]
 
 [features]
 verifymessage = ["bitcoin/base64"]

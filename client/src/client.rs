@@ -1,12 +1,4 @@
-// To the extent possible under law, the author(s) have dedicated all
-// copyright and related and neighboring rights to this software to
-// the public domain worldwide. This software is distributed without
-// any warranty.
-//
-// You should have received a copy of the CC0 Public Domain Dedication
-// along with this software.
-// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
-//
+// SPDX-License-Identifier: CC0-1.0
 
 use std::collections::HashMap;
 use std::fs::File;
@@ -15,24 +7,17 @@ use std::iter::FromIterator;
 use std::path::PathBuf;
 use std::{fmt, result};
 
-use crate::bitcoin;
-use crate::bitcoin::consensus::encode;
-use bitcoin::hex::DisplayHex;
-use jsonrpc;
-use serde;
-use serde_json;
-
-use crate::bitcoin::address::{NetworkChecked, NetworkUnchecked};
-use crate::bitcoin::hashes::hex::FromHex;
-use crate::bitcoin::{
-    Address, Amount, Block, OutPoint, PrivateKey, PublicKey, Script, Transaction,
-};
+use bitcoin::address::{NetworkChecked, NetworkUnchecked};
+use bitcoin::consensus::encode;
+use bitcoin::hex::{DisplayHex, FromHex};
+#[cfg(feature = "verifymessage")]
 use bitcoin::sign_message::MessageSignature;
+use bitcoin::{Address, Amount, Block, OutPoint, PrivateKey, PublicKey, Script, Transaction};
+
 use log::Level::{Debug, Trace, Warn};
 
 use crate::error::*;
-use crate::json;
-use crate::queryable;
+use crate::{bitcoin, json, queryable};
 
 /// Crate-specific Result type, shorthand for `std::result::Result` with our
 /// crate-specific Error type;
@@ -47,19 +32,19 @@ pub struct JsonOutPoint {
 }
 
 impl From<OutPoint> for JsonOutPoint {
-    fn from(o: OutPoint) -> JsonOutPoint {
+    fn from(out: OutPoint) -> Self {
         JsonOutPoint {
-            txid: o.txid,
-            vout: o.vout,
+            txid: out.txid,
+            vout: out.vout,
         }
     }
 }
 
-impl Into<OutPoint> for JsonOutPoint {
-    fn into(self) -> OutPoint {
-        OutPoint {
-            txid: self.txid,
-            vout: self.vout,
+impl From<JsonOutPoint> for OutPoint {
+    fn from(json: JsonOutPoint) -> Self {
+        Self {
+            txid: json.txid,
+            vout: json.vout,
         }
     }
 }
@@ -113,9 +98,9 @@ fn empty_obj() -> serde_json::Value {
 ///
 /// Elements of `args` without corresponding `defaults` value, won't
 /// be substituted, because they are required.
-fn handle_defaults<'a, 'b>(
+fn handle_defaults<'a>(
     args: &'a mut [serde_json::Value],
-    defaults: &'b [serde_json::Value],
+    defaults: &[serde_json::Value],
 ) -> &'a [serde_json::Value] {
     assert!(args.len() >= defaults.len());
 
@@ -231,7 +216,7 @@ pub trait RpcApi: Sized {
         &self,
         id: &<T as queryable::Queryable<Self>>::Id,
     ) -> Result<T> {
-        T::query(&self, &id)
+        T::query(self, id)
     }
 
     fn get_network_info(&self) -> Result<json::GetNetworkInfoResult> {
@@ -378,9 +363,9 @@ pub trait RpcApi: Sized {
         self.call(
             "getblocktemplate",
             &[into_json(Argument {
-                mode: mode,
-                rules: rules,
-                capabilities: capabilities,
+                mode,
+                rules,
+                capabilities,
             })?],
         )
     }
@@ -419,7 +404,7 @@ pub trait RpcApi: Sized {
                         type_: json::SoftforkType::Buried,
                         bip9: None,
                         height: None,
-                        active: active,
+                        active,
                     },
                 );
             }
@@ -703,18 +688,14 @@ pub trait RpcApi: Sized {
 
     /// To unlock, use [unlock_unspent].
     fn lock_unspent(&self, outputs: &[OutPoint]) -> Result<bool> {
-        let outputs: Vec<_> = outputs
-            .into_iter()
-            .map(|o| serde_json::to_value(JsonOutPoint::from(*o)).unwrap())
-            .collect();
+        let outputs: Vec<_> =
+            outputs.iter().map(|o| serde_json::to_value(JsonOutPoint::from(*o)).unwrap()).collect();
         self.call("lockunspent", &[false.into(), outputs.into()])
     }
 
     fn unlock_unspent(&self, outputs: &[OutPoint]) -> Result<bool> {
-        let outputs: Vec<_> = outputs
-            .into_iter()
-            .map(|o| serde_json::to_value(JsonOutPoint::from(*o)).unwrap())
-            .collect();
+        let outputs: Vec<_> =
+            outputs.iter().map(|o| serde_json::to_value(JsonOutPoint::from(*o)).unwrap()).collect();
         self.call("lockunspent", &[true.into(), outputs.into()])
     }
 
@@ -864,7 +845,7 @@ pub trait RpcApi: Sized {
         rawtxs: &[R],
     ) -> Result<Vec<json::TestMempoolAcceptResult>> {
         let hexes: Vec<serde_json::Value> =
-            rawtxs.to_vec().into_iter().map(|r| r.raw_hex().into()).collect();
+            rawtxs.iter().cloned().map(|r| r.raw_hex().into()).collect();
         self.call("testmempoolaccept", &[hexes.into()])
     }
 
@@ -959,6 +940,7 @@ pub trait RpcApi: Sized {
         self.call("getchaintips", &[])
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Remove this.
     fn send_to_address(
         &self,
         address: &Address<NetworkChecked>,
@@ -1260,7 +1242,7 @@ pub trait RpcApi: Sized {
         match self.call("submitblock", &[into_json(&block_hex)?]) {
             Ok(serde_json::Value::Null) => Ok(()),
             Ok(res) => Err(Error::ReturnedError(res.to_string())),
-            Err(err) => Err(err.into()),
+            Err(err) => Err(err),
         }
     }
 
@@ -1322,7 +1304,7 @@ impl RpcApi for Client {
         args: &[serde_json::Value],
     ) -> Result<T> {
         let raw = serde_json::value::to_raw_value(args)?;
-        let req = self.client.build_request(&cmd, Some(&*raw));
+        let req = self.client.build_request(cmd, Some(&*raw));
         if log_enabled!(Debug) {
             debug!(target: "bitcoincore_rpc", "JSON-RPC request: {} {}", cmd, serde_json::Value::from(args));
         }

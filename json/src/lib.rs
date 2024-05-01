@@ -1,29 +1,24 @@
-// To the extent possible under law, the author(s) have dedicated all
-// copyright and related and neighboring rights to this software to
-// the public domain worldwide. This software is distributed without
-// any warranty.
-//
-// You should have received a copy of the CC0 Public Domain Dedication
-// along with this software.
-// If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
-//
+// SPDX-License-Identifier: CC0-1.0
 
 //! # Rust Client for Bitcoin Core API
 //!
 //! This is a client library for the Bitcoin Core JSON-RPC API.
 //!
 
-#![crate_name = "bitcoincore_rpc_json"]
-#![crate_type = "rlib"]
+// Exclude lints we don't think are valuable.
+#![allow(clippy::needless_question_mark)] // https://github.com/rust-bitcoin/rust-bitcoin/pull/2134
+#![allow(clippy::manual_range_contains)] // More readable than clippy's format.
+#![allow(clippy::needless_borrows_for_generic_args)] // https://github.com/rust-lang/rust-clippy/issues/12454
 #![allow(deprecated)] // Because of `GetPeerInfoResultNetwork::Unroutable`.
 
+/// Re-export the `bitcoin` crate.
 pub extern crate bitcoin;
-#[allow(unused)]
-#[macro_use] // `macro_use` is needed for v1.24.0 compilation.
+
 extern crate serde;
 extern crate serde_json;
 
 use std::collections::HashMap;
+use std::fmt;
 
 use bitcoin::address::NetworkUnchecked;
 use bitcoin::block::Version;
@@ -34,9 +29,9 @@ use bitcoin::{
     bip158, bip32, Address, Amount, Network, PrivateKey, PublicKey, Script, ScriptBuf,
     SignedAmount, Transaction,
 };
+
 use serde::de::Error as SerdeError;
 use serde::{Deserialize, Serialize};
-use std::fmt;
 
 //TODO(stevenroose) consider using a Time type
 
@@ -1153,7 +1148,7 @@ impl<'a> serde::Serialize for ImportMultiRequestScriptPubkey<'a> {
         S: serde::Serializer,
     {
         match *self {
-            ImportMultiRequestScriptPubkey::Address(ref addr) => {
+            ImportMultiRequestScriptPubkey::Address(addr) => {
                 #[derive(Serialize)]
                 struct Tmp<'a> {
                     pub address: &'a Address,

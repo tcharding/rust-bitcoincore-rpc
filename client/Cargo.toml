@@ -13,11 +13,9 @@ repository = "https://github.com/rust-bitcoin/rust-bitcoincore-rpc/"
 description = "RPC client library for the Bitcoin Core JSON-RPC API."
 keywords = ["crypto", "bitcoin", "bitcoin-core", "rpc"]
 readme = "README.md"
-edition = "2018"
-
-[lib]
-name = "bitcoincore_rpc"
-path = "src/lib.rs"
+edition = "2021"
+rust-version = "1.56.1"
+exclude = ["integration_test"]
 
 [features]
 verifymessage = ["bitcoincore-rpc-json/verifymessage"]
