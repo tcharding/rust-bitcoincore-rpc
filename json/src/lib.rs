@@ -31,6 +31,7 @@ use bitcoin::block::Version;
 use bitcoin::consensus::encode;
 use bitcoin::hashes::hex::FromHex;
 use bitcoin::hashes::sha256;
+use crate::bitcoin::script::ScriptExt as _;
 use bitcoin::{Address, Amount, PrivateKey, PublicKey, SignedAmount, Transaction, ScriptBuf, Script, bip158, bip32, Network};
 use serde::de::Error as SerdeError;
 use serde::{Deserialize, Serialize};
@@ -643,8 +644,8 @@ impl GetRawTransactionResult {
         self.vin.len() == 1 && self.vin[0].is_coinbase()
     }
 
-    pub fn transaction(&self) -> Result<Transaction, encode::Error> {
-        Ok(encode::deserialize(&self.hex)?)
+    pub fn transaction(&self) -> Result<Transaction, encode::DeserializeError> {
+        encode::deserialize(&self.hex)
     }
 }
 
@@ -712,7 +713,7 @@ pub struct GetTransactionResult {
 }
 
 impl GetTransactionResult {
-    pub fn transaction(&self) -> Result<Transaction, encode::Error> {
+    pub fn transaction(&self) -> Result<Transaction, encode::DeserializeError> {
         Ok(encode::deserialize(&self.hex)?)
     }
 }
@@ -825,7 +826,7 @@ pub struct SignRawTransactionResult {
 }
 
 impl SignRawTransactionResult {
-    pub fn transaction(&self) -> Result<Transaction, encode::Error> {
+    pub fn transaction(&self) -> Result<Transaction, encode::DeserializeError> {
         Ok(encode::deserialize(&self.hex)?)
     }
 }
@@ -1655,7 +1656,7 @@ pub struct GetBlockTemplateResultTransaction {
 }
 
 impl GetBlockTemplateResultTransaction {
-    pub fn transaction(&self) -> Result<Transaction, encode::Error> {
+    pub fn transaction(&self) -> Result<Transaction, encode::DeserializeError> {
         encode::deserialize(&self.raw_tx)
     }
 }
@@ -1818,7 +1819,7 @@ pub enum GetChainTipsResultStatus {
 }
 
 impl FinalizePsbtResult {
-    pub fn transaction(&self) -> Option<Result<Transaction, encode::Error>> {
+    pub fn transaction(&self) -> Option<Result<Transaction, encode::DeserializeError>> {
         self.hex.as_ref().map(|h| encode::deserialize(h))
     }
 }
@@ -1933,7 +1934,7 @@ pub struct GetBalancesResult {
 }
 
 impl FundRawTransactionResult {
-    pub fn transaction(&self) -> Result<Transaction, encode::Error> {
+    pub fn transaction(&self) -> Result<Transaction, encode::DeserializeError> {
         encode::deserialize(&self.hex)
     }
 }

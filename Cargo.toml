@@ -5,3 +5,31 @@ members = [
     "client",
     "integration_test",
 ]
+
+[patch.crates-io.base58ck]
+git = "https://github.com/tcharding/rust-bitcoin"
+branch = "alpha"
+
+[patch.crates-io.bitcoin]
+git = "https://github.com/tcharding/rust-bitcoin"
+branch = "alpha"
+
+[patch.crates-io.bitcoin_hashes]
+git = "https://github.com/tcharding/rust-bitcoin"
+branch = "alpha"
+
+[patch.crates-io.bitcoin-internals]
+git = "https://github.com/tcharding/rust-bitcoin"
+branch = "alpha"
+
+[patch.crates-io.bitcoin-io]
+git = "https://github.com/tcharding/rust-bitcoin"
+branch = "alpha"
+
+[patch.crates-io.bitcoin-primitives]
+git = "https://github.com/tcharding/rust-bitcoin"
+branch = "alpha"
+
+[patch.crates-io.bitcoin-units]
+git = "https://github.com/tcharding/rust-bitcoin"
+branch = "alpha"
